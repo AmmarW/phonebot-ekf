@@ -7,6 +7,7 @@ from data_loader import load_csv, estimate_rate
 from preprocessor import trim_initial_static, estimate_biases, apply_calibration
 from utils import phone_to_robot, latlon_to_enu
 from ekf_filter import EKF
+import matplotlib.pyplot as plt
 
 def main():
     project_dir = 'phone_localization'
@@ -38,8 +39,10 @@ def main():
     # 5) Estimate & remove biases (with fallback if needed)
     static_accel = orig_accel[orig_accel.index < t0]
     static_gyro  = orig_gyro [orig_gyro .index < t0]
+
     try:
         accel_bias, gyro_bias = estimate_biases(static_accel, static_gyro)
+        print(gyro_bias)
     except ValueError:
         # fallback to first 200 samples
         N = 200
@@ -47,7 +50,7 @@ def main():
         gyro_bias  = orig_gyro [['gx','gy','gz']].iloc[:N].mean().to_numpy()
         print(f"⚠️  Static window empty—using first {N} samples for bias")
 
-    apply_calibration(accel, gyro, accel_bias, gyro_bias)
+    accel, gyro = apply_calibration(accel, gyro, accel_bias, gyro_bias)
     print("Biases removed, sample accel:\n", accel[['ax','ay','az']].head())
 
     # 6) Rotate phone→robot frame
@@ -66,7 +69,7 @@ def main():
 
     # 8) Initialize EKF
     dt    = 1.0 / estimate_rate(accel)
-    Q     = np.eye(8) * 1e-3
+    Q     = np.eye(8) * 1e-5
     R_gps = np.eye(2) * (gps['horizontalAccuracy'].mean()**2)
     ekf   = EKF(dt, Q, R_gps)
 
@@ -102,6 +105,17 @@ def main():
     out_path = os.path.join(project_dir, 'ekf_states.csv')
     states_df.to_csv(out_path, index=False)
     print(f"Done → fused states written to {out_path}")
+
+    # plot
+    plt.figure(figsize=(8,6))
+    plt.plot(states_df['px'], states_df['py'], label='Trajectory')
+    plt.xlabel('px (meters)')
+    plt.ylabel('py (meters)')
+    plt.title('Estimated 2D Trajectory (px vs py)')
+    plt.legend()
+    plt.grid(True)
+    plt.axis('equal')  # So x and y are scaled equally
+    plt.show()
     
 if __name__ == '__main__':
     main()

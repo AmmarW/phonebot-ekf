@@ -1,6 +1,6 @@
 import numpy as np
 
-def trim_initial_static(accel_df, threshold=0.02, max_samples=1800):
+def trim_initial_static(accel_df, threshold=5, max_samples=5000):
     """
     Find end of initial static window by seeing when accel magnitude
     first deviates from its initial mean by more than `threshold`.
@@ -35,9 +35,9 @@ def estimate_biases(static_accel_df, static_gyro_df):
     if static_accel_df.empty or static_gyro_df.empty:
         raise ValueError("Static window is empty—cannot estimate biases.")
     # mean accel minus zero (we treat static accel as bias)
-    accel_bias = static_accel_df[['ax','ay','az']].mean().to_numpy()
+    accel_bias = static_accel_df[['ax','ay','az']].median().to_numpy()
     # mean gyro
-    gyro_bias  = static_gyro_df[['gx','gy','gz']].mean().to_numpy()
+    gyro_bias  = static_gyro_df[['gx','gy','gz']].median().to_numpy()
     return accel_bias, gyro_bias
 
 
@@ -47,3 +47,4 @@ def apply_calibration(accel_df, gyro_df, accel_bias, gyro_bias):
     """
     accel_df[['ax','ay','az']] -= accel_bias
     gyro_df [['gx','gy','gz']] -= gyro_bias
+    return accel_df, gyro_df
