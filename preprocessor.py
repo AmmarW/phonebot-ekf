@@ -1,6 +1,6 @@
 import numpy as np
 
-def trim_initial_static(accel_df, threshold=5, max_samples=5000):
+def trim_initial_static(accel_df, threshold=5, max_samples=7000):
     """
     Find end of initial static window by seeing when accel magnitude
     first deviates from its initial mean by more than `threshold`.
