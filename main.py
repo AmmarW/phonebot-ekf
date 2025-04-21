@@ -1,3 +1,9 @@
+#############################
+#                           #
+#    for U turn dataset     #
+#                           #
+############################# 
+
 # # main.py
 
 # import os
@@ -121,7 +127,11 @@
 # if __name__ == '__main__':
 #     main()
 
-
+#############################
+#                           #
+# for straight line dataset #
+#                           #
+#############################  
 import os
 import pandas as pd
 import numpy as np
@@ -136,10 +146,10 @@ def main():
     os.makedirs(project_dir, exist_ok=True)
 
     # 1) Load CSVs; index is now datetime parsed from raw UNIX ns/s
-    accel = load_csv('tests/Data_With_GPS_Straight_Line_2/Accelerometer.csv')
-    gyro  = load_csv('tests/Data_With_GPS_Straight_Line_2/Gyroscope.csv')
-    gps   = load_csv('tests/Data_With_GPS_Straight_Line_2/Location.csv')
-    orientation = load_csv('tests/Data_With_GPS_Straight_Line_2/Orientation.csv')  # New CSV for roll, pitch, yaw
+    accel = load_csv('tests/Data_With_GPS_Straight_Line_1/Accelerometer.csv')
+    gyro  = load_csv('tests/Data_With_GPS_Straight_Line_1/Gyroscope.csv')
+    gps   = load_csv('tests/Data_With_GPS_Straight_Line_1/Location.csv')
+    orientation = load_csv('tests/Data_With_GPS_Straight_Line_1/Orientation.csv')  # New CSV for roll, pitch, yaw
 
     # 2) Rename axes columns for EKF
     accel.rename(columns={'x':'ax','y':'ay','z':'az'}, inplace=True)
@@ -192,7 +202,7 @@ def main():
 
     # 8) Initialize EKF
     dt    = 1.0 / estimate_rate(accel)
-    Q     = np.eye(8) * 1e-5
+    Q     = np.eye(8) * 1e-1
     R_gps = np.eye(2) * (gps['horizontalAccuracy'].mean()**2)
     ekf   = EKF(dt, Q, R_gps)
 
@@ -205,7 +215,7 @@ def main():
 
     for ax, ay, gz, t in zip(accel['ax'], accel['ay'], gyro['gz'], accel.index):
         # Use pitch from the orientation.csv for psi (heading)
-        pitch = orientation['pitch'].loc[t]  # Get pitch for the current timestamp
+        pitch = orientation['yaw'].loc[t]  # Get pitch for the current timestamp
         psi = pitch  # psi is directly the pitch in this case
 
         # Predict the state using IMU data and pitch as psi
