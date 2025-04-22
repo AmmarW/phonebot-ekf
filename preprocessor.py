@@ -26,6 +26,33 @@ def trim_initial_static(accel_df, threshold=5, max_samples=7000):
     # if we never exceed threshold, start after our window
     return accel_df.index[scan_len-1]
 
+def trim_final_static(accel_df, threshold=5, max_samples=4000):
+    """
+    Find start of final static window by seeing when accel magnitude
+    last deviates from its final mean by more than `threshold`.
+    If no deviation within max_samples, use max_samples as the window.
+    
+    accel_df: DataFrame indexed by seconds_elapsed with ['ax','ay','az']
+    threshold: allowable g‐unit deviation (sensor units)
+    max_samples: max rows to scan for a static window
+    Returns: end_time (float seconds) for motion
+    """
+    # compute accel magnitude in sensor units
+    a_vec = accel_df[['ax','ay','az']].to_numpy()
+    a_mag = np.linalg.norm(a_vec, axis=1)
+    
+    # final “static” level
+    final = a_mag[-1]
+    # scan up to max_samples or start of data
+    scan_len = min(len(a_mag), max_samples)
+    for i in range(1, scan_len):
+        if abs(a_mag[-i] - final) > threshold:
+            # last motion ends just after this point
+            return accel_df.index[-i+1]
+    
+    # if we never exceed threshold, end before our window
+    return accel_df.index[-scan_len]
+
 
 def estimate_biases(static_accel_df, static_gyro_df):
     """
