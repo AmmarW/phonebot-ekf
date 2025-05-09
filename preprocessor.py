@@ -7,7 +7,7 @@ def trim_initial_static(accel_df, threshold=5, max_samples=7000):
     If no deviation within max_samples, use max_samples as the window.
     
     accel_df: DataFrame indexed by seconds_elapsed with ['ax','ay','az']
-    threshold: allowable g‐unit deviation (sensor units)
+    threshold: allowable g-unit deviation (sensor units)
     max_samples: max rows to scan for a static window
     Returns: start_time (float seconds) for motion
     """
@@ -33,7 +33,7 @@ def trim_final_static(accel_df, threshold=5, max_samples=4000):
     If no deviation within max_samples, use max_samples as the window.
     
     accel_df: DataFrame indexed by seconds_elapsed with ['ax','ay','az']
-    threshold: allowable g‐unit deviation (sensor units)
+    threshold: allowable g-unit deviation (sensor units)
     max_samples: max rows to scan for a static window
     Returns: end_time (float seconds) for motion
     """
